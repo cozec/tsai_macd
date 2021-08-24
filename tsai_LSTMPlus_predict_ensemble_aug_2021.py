@@ -27,6 +27,7 @@ from parameters import *
 #from macd_gen_gold_daily_optimized import get_gold_tickers
 
 from tsai_predict_funs import macd_get_train_test_simple, p2f, ensemble_trained_model_fnames, ensemble_model_analysis, get_gold_tickers
+
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     torch.cuda.set_device(device)
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     get_gold_tickers(DAYS_CHECK_BACKWARD=2)
 
 
-    pname = './data/sp500_tmp.p'
+    pname = './output/sp500_tmp.p'
     x_train, x_val, x_test, y_train, y_valid, y_test, ls_test = macd_get_train_test_simple(pname,
                                                                                            datetime.strptime("1900-01-01", '%Y-%m-%d'), #make sure all data into test
                                                                                            BUY_WAIT_THRESHOLD=BUY_WAIT_THRESHOLD,

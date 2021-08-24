@@ -11,6 +11,7 @@ import pandas as pd
 import math
 import csv
 import yfinance as yf
+import time
 
 from parameters import *
 pd.options.display.float_format = '{:.2f}%'.format
@@ -239,9 +240,64 @@ def get_macd_sessions(ticker_name, sell_today = False, period="max", data_all=No
             macd_sessions.append(valid_each_row)
     return macd_sessions
 
+def get_macd_sessions_latest(ticker_name, sell_today = False, period="max", data_all=None):
+    """Get latest macd session only to speed up
+    """
+    if ticker_name not in data_all: return []
+    if len(data_all[ticker_name]) == 0: return []
+
+    df = data_all[ticker_name].copy()
+    time_range_start = df.index[0]
+
+    df = get_MACD(df)
+    buy_signals, sell_signals, signals = detect_macd_signals(df, sell_today=sell_today)
+    rows_summary, total_profit, total_transaction = print_performance_summary(signals, time_range_start, PRINT_DETAIL=False)
+    macd_sessions = []
+
+    for rs in rows_summary[-1:]:
+        hist_percentage = df['macd_hist_percentage'][:rs['buy_date'].strftime('%Y-%m-%d')]
+        hist_percentage = hist_percentage.values
+        macd_percentage = df['macd_percentage'][:rs['buy_date'].strftime('%Y-%m-%d')]
+        macd_percentage = macd_percentage.values
+        signal_percentage = df['macd_signal_percentage'][:rs['buy_date'].strftime('%Y-%m-%d')]
+        signal_percentage = signal_percentage.values
+
+        close = df['Close'][:rs['buy_date'].strftime('%Y-%m-%d')]
+        close = close.values
+        volume = df['Volume'][:rs['buy_date'].strftime('%Y-%m-%d')]
+        volume = volume.values
+
+        if len(hist_percentage) >= 120:  # if enough data
+            # get past 120 days data only
+            if min(close[-120:]) == max(close[-120:]) or min(volume[-120:]) == max(volume[-120:]):  # invalid data
+                continue
+            # if max(close[-120:]) < 1.0: #penny stock
+            #    continue
+            if np.isnan(np.sum(close[-120:])) or np.isnan(np.sum(volume[-120:])) \
+                    or np.isnan(np.sum(hist_percentage[-120:])) or np.isnan(np.sum(macd_percentage[-120:])) or np.isnan(
+                np.sum(signal_percentage[-120:])):
+                continue
+            scaled_close = simple_minmax_scaler(close[-120:])
+            scaled_volume = simple_minmax_scaler(volume[-120:])
+            dataset = np.vstack(
+                (hist_percentage[-120:], macd_percentage[-120:], signal_percentage[-120:], scaled_close, scaled_volume))
+            dataset = np.transpose(dataset)
+
+            y = float(rs['profit_pct'].strip('%'))
+            valid_each_row = rs
+            valid_each_row['ticker'] = ticker_name
+            valid_each_row['x'] = dataset
+            valid_each_row['y'] = y
+
+            macd_sessions.append(valid_each_row)
+    return macd_sessions
+
 
 def get_gold_tickers(DAYS_CHECK_BACKWARD=0):
     sp500tickers = si.tickers_sp500()
+
+    target_list = sp500tickers[:]
+    #target_list = ['NVDA', 'WYNN', 'LOW']
 
     #DAYS_CHECK_BACKWARD = 0 #1 #7 #0 #7
     print(f'DAYS_CHECK_BACKWARD: {DAYS_CHECK_BACKWARD}')
@@ -253,8 +309,6 @@ def get_gold_tickers(DAYS_CHECK_BACKWARD=0):
 
     s = time.time()
 
-    target_list = sp500tickers[:]
-    #target_list = ['ABMD', 'CSCO', 'LOW']
 
     # download all data to save time
     data_all = yf.download(' '.join(target_list), period="max", group_by='tickers')
@@ -279,16 +333,64 @@ def get_gold_tickers(DAYS_CHECK_BACKWARD=0):
 
 
     print('MACD latest trigger: ', ls_macd_recent_trigger)
-    with open('./data/nn_good_precision_latest_MACD_trigger.txt', 'w', newline='') as myfile:
+    with open('./output/nn_good_precision_latest_MACD_trigger.txt', 'w', newline='') as myfile:
         wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
         wr.writerow(ls_macd_recent_trigger)
     print('*'*80)
     print('file written: ', './data/nn_good_precision_latest_MACD_trigger.txt')
 
-    pname = './data/sp500_tmp.p'
+    pname = './output/sp500_tmp.p'
     pickle.dump(valid_rows_summary, open(pname, 'wb'))
-    print('file written: ', './data/sp500_tmp.p')
+    print('file written: ', './output/sp500_tmp.p')
     print('*'*80)
+
+    e = time.time()
+    print('----------------------------------------------------------------time: ', e - s)
+
+def get_gold_tickers_optimized(DAYS_CHECK_BACKWARD=0):
+    sp500tickers = si.tickers_sp500()
+
+    target_list = sp500tickers[:]
+    #target_list = ['NVDA', 'WYNN', 'LOW']
+
+    #DAYS_CHECK_BACKWARD = 0 #1 #7 #0 #7
+    print(f'DAYS_CHECK_BACKWARD: {DAYS_CHECK_BACKWARD}')
+    date_now = time.strftime("%Y-%m-%d")
+    trigger_date = datetime.strptime(date_now, '%Y-%m-%d') - timedelta(days = DAYS_CHECK_BACKWARD)
+    print(date_now, 'trigger boundary:', trigger_date)
+
+    s = time.time()
+
+    # download all data to save time
+    data_all = yf.download(' '.join(target_list), period="max", group_by='tickers')
+
+    if data_all is not None:
+        ls_macd_recent_trigger = []
+        valid_rows_summary = []
+        for ticker_name in target_list:
+            print(ticker_name)
+            macd_sessions = get_macd_sessions_latest(ticker_name, sell_today=True, period="max", data_all=data_all)
+            if macd_sessions:
+                latest_session = macd_sessions[-1]
+                if latest_session['buy_date'] >= trigger_date:
+                    print('trigger date:', latest_session['buy_date'])
+                    ls_macd_recent_trigger.append(ticker_name)
+                    valid_rows_summary.append(macd_sessions[-1])  # for inference, take the last one only
+                # else:
+                # print('trigger earlier:', latest_session['buy_date'])
+
+
+        print('MACD latest trigger: ', ls_macd_recent_trigger)
+        with open('./output/nn_good_precision_latest_MACD_trigger.txt', 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+            wr.writerow(ls_macd_recent_trigger)
+        print('*'*80)
+        print('file written: ', './data/nn_good_precision_latest_MACD_trigger.txt')
+
+        pname = './output/sp500_tmp.p'
+        pickle.dump(valid_rows_summary, open(pname, 'wb'))
+        print('file written: ', './output/sp500_tmp.p')
+        print('*'*80)
 
     e = time.time()
     print('----------------------------------------------------------------time: ', e - s)
@@ -586,3 +688,7 @@ def ensemble_trained_model_fnames():
         learner_fname = f"learner-{label}-" + fname_prefix
         trained_models.append((model_path, model_fname, learner_fname, label, fname_prefix))
     return trained_models
+
+if __name__ == '__main__':
+    get_gold_tickers_optimized(DAYS_CHECK_BACKWARD=2)
+    get_gold_tickers(DAYS_CHECK_BACKWARD=2)
