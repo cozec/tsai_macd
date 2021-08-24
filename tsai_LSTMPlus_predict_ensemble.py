@@ -11,9 +11,10 @@ from datetime import datetime, date, timedelta
 import tsai
 from tsai.all import *
 
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-torch.cuda.set_device(device)
-print('device--->', device)
+if True:
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    torch.cuda.set_device(device)
+    print('device--->', device)
 
 from sklearn.metrics import confusion_matrix, classification_report
 
@@ -27,7 +28,7 @@ from macd_gen_gold_daily_optimized import get_gold_tickers
 
 if __name__ == '__main__':
 
-    get_gold_tickers(DAYS_CHECK_BACKWARD=3)
+    get_gold_tickers(DAYS_CHECK_BACKWARD=2)
 
     predict_save_path = 'LSTMPlus_predict_ensemble'
     if not os.path.isdir(predict_save_path):

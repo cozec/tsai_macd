@@ -16,7 +16,6 @@ import matplotlib.pyplot as plt
 import matplotlib
 from datetime import datetime, date, timedelta
 import csv
-import time
 import pickle
 import time
 
@@ -51,7 +50,7 @@ def get_gold_tickers(DAYS_CHECK_BACKWARD=0):
     s = time.time()
 
     target_list = sp500tickers[:]
-    #target_list = ['EQIX', 'A']
+    #target_list = ['ABMD', 'CSCO', 'LOW']
 
     # download all data to save time
     data_all = yf.download(' '.join(target_list), period="max", group_by='tickers')

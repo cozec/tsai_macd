@@ -49,20 +49,22 @@ from collections import defaultdict
 #from tutorial_trade_macd import detect_macd_signals, print_performance_summary
 #from zl_macd_basic_list import save_sp500_tickers
 
-from tensorflow.keras import Sequential
+if False:
+    from tensorflow.keras import Sequential
+    from tensorflow.keras.layers import Dense, LSTM, Dropout, BatchNormalization
+    import tensorflow as tf
+    from tensorflow import keras
+    from tensorflow.keras import layers
+    from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
+
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
-from tensorflow.keras.layers import Dense, LSTM, Dropout, BatchNormalization
 import pickle
 from sklearn.model_selection import train_test_split
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 from sklearn import preprocessing
 from sklearn.utils import class_weight
 from sklearn.metrics import confusion_matrix, classification_report
-from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
 
 from scipy.stats import binned_statistic
 

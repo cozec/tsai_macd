@@ -2,9 +2,6 @@ from yahoo_fin import stock_info as si
 import pandas as pd
 from datetime import datetime, date, timedelta
 
-def p2f(x):
-    return float(x.strip('%'))/100
-
 BUY_WAIT_THRESHOLD = 1 #0 #1 #2 #percent
 TRAIN_TEST_DATA_RANGE = 120 #60
 
@@ -37,5 +34,7 @@ may_01_2021_date = datetime.strptime("2021-05-01", '%Y-%m-%d')
 
 #pname = './data/macd_better_last120x5_max.p'
 
+def p2f(x):
+    return float(x.strip('%'))/100
 
 

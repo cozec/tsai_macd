@@ -24,10 +24,14 @@ from sklearn.preprocessing import MinMaxScaler
 
 from parameters import *
 
-import sys
-sys.path.insert(0, "../backtesting_zipline")
-from tutorial_trade_macd import detect_macd_signals, print_performance_summary
-from zl_macd_basic_list import save_sp500_tickers
+if True:
+    import sys
+    sys.path.insert(0, "../backtesting_zipline")
+    from tutorial_trade_macd import detect_macd_signals, print_performance_summary
+else:
+    from tutorial_trade_macd0 import detect_macd_signals, print_performance_summary
+
+#from zl_macd_basic_list import save_sp500_tickers
 
 def get_MACD(df):
     """
