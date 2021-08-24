@@ -26,7 +26,7 @@ from parameters import *
 #from tsai_models_ensemble import ensemble_trained_model_fnames, ensemble_model_analysis
 #from macd_gen_gold_daily_optimized import get_gold_tickers
 
-from tsai_predict_funs import macd_get_train_test_simple, p2f, ensemble_trained_model_fnames, ensemble_model_analysis, get_gold_tickers
+from tsai_predict_funs import macd_get_train_test_simple, p2f, ensemble_trained_model_fnames, ensemble_model_analysis, get_gold_tickers_optimized
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
