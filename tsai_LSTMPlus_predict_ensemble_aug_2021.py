@@ -41,7 +41,7 @@ if __name__ == '__main__':
     train_end = train_month_list[0]
     pp_threshold = 0.5  # 0.55
 
-    get_gold_tickers(DAYS_CHECK_BACKWARD=2)
+    get_gold_tickers_optimized(DAYS_CHECK_BACKWARD=2)
 
 
     pname = './output/sp500_tmp.p'
