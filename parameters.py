@@ -10,8 +10,8 @@ nasdaqtickers = si.tickers_nasdaq()
 #dowtickers = si.tickers_dow()
 othertickers = si.tickers_other()
 alltickers = list(set(sp500tickers + nasdaqtickers + othertickers))
-mc = pd.read_csv('../backtesting_zipline/data/macd_better_than_10percent.csv')
-all_macd_better = mc['ticker'].tolist()
+#mc = pd.read_csv('../backtesting_zipline/data/macd_better_than_10percent.csv')
+#all_macd_better = mc['ticker'].tolist()
 
 #train_month_list = [i.strftime('%Y-%m-%d') for i in pd.date_range(start="2018-11-01", end="2019-12-01", freq='MS')]
 #train_month_list = ["2018-12-01"]

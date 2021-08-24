@@ -28,7 +28,7 @@ from parameters import *
 
 from tsai_predict_funs import macd_get_train_test_simple, p2f, ensemble_trained_model_fnames, ensemble_model_analysis, get_gold_tickers
 if __name__ == '__main__':
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     torch.cuda.set_device(device)
     print('device--->', device)
 
